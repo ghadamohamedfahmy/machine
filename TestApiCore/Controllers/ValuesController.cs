@@ -12,6 +12,8 @@ using Microsoft.ML.Runtime.Api;
 using Model;
 using Microsoft.AspNetCore.Hosting;
 using System.Web.Http.Description;
+using Newtonsoft.Json;
+using System.Xml;
 
 namespace TestApiCore.Controllers
 {
@@ -40,6 +42,7 @@ namespace TestApiCore.Controllers
 
         }
         // GET api/values
+        [ResponseType(typeof (JsonResult))]
         [HttpGet]
         public IEnumerable<string> Get()
         {
@@ -47,9 +50,10 @@ namespace TestApiCore.Controllers
         }
 
         // GET api/values/5
-        [ResponseType(typeof (Rate))]
+       
         [HttpGet("{text}")]
-        public string Get(string text)
+       
+        public List<Rate> Get(string text)
         {
 
             //prediction based on comments
@@ -58,46 +62,32 @@ namespace TestApiCore.Controllers
             {
                 new SentimentData
                  {
-                    SentimentText = text//"licencié et a quité l'entreprise. Elle formule une demande de formation dans le cadre du DIF. "
-
-                 }/*,
-                 new SentimentData
-                 {
-                    SentimentText = "Est ce qu une absence pour accident du travail a un impact sur l attribution des RTTCONGES ANNUELS / RTT / COMPTE EPARGNE TEMPSb"
-
-                 },
-                 new SentimentData
-                 {
-                    SentimentText = "New hr is on board"
-
-                 },
-                new SentimentData
-                {
-                    SentimentText = "i want go for vacation of 2 weeks"
-
-                },
-                 new SentimentData
-                {
-                    SentimentText = "comment enregistrer une adresse où apparait ancien chemin"
-
-                },
-                 new SentimentData
-                {
-                     SentimentText = " travail pour les auxiliaires de vacances ?   "
-
-                }*/
+                    SentimentText = text                 }
             };
             //sentiment prediction
             IEnumerable<SentimentPrediction> predictions = model.Predict(sentiments);
-            string x= "Sentiment Predictions\r\n";
-            x+="---------------------\r\n";
+            List<Rate> subjects = new List<Rate>();
+            Rate rate=new Rate();
             var sentimentsAndPredictions = sentiments.Zip(predictions, (sentiment, prediction) => (sentiment, prediction));
+            sentimentsAndPredictions.ToArray();
             foreach (var item in sentimentsAndPredictions)
             {
-                x+=$"SentimentText: {item.sentiment.SentimentText} | Category: {(item.prediction.Category)} \r\n";
+
+
+
+                rate.Category =  $"{ item.prediction.Category}";
+
+                rate.SentimentText = $"{item.sentiment.SentimentText}";
+                subjects.Add(rate);
             }
-            return x;
+            //JsonConvert.SerializeObject(rate);
+            //JsonConvert.DeserializeObject<Rate>(rate.SentimentText);
+
+            return subjects;
+           
+
         }
+
         [HttpGet("myFunc/{text}")]
         public string MyFunc(string text )
         {
